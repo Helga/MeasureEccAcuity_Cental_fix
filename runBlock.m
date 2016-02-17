@@ -14,7 +14,6 @@ data.stim.thFix = unique (thisplan(:,2));%fixation location for this block
 
 PM_ind = find(cellfun(@(x) x.loc == data.stim.thFix, expmnt.adaptiveComp));%find which PM needs to be updated for this block
 
-
 thisGaze = 1;
 thisStim = 1;
 
@@ -27,7 +26,7 @@ Screen('Flip',win);
 % calibrate eye tracker if needed
 if expmnt.useEyeTracker == 1
     % eyetracker data file (one file per block)
-    eyeTrackerFileName = [eyeTrackerBaseName num2str(expmnt.thisBlock,'%03d') '.edf'];    
+    eyeTrackerFileName = [eyeTrackerBaseName num2str(expmnt.thisBlock,'%02d') '.edf'];    
     s = Eyelink('OpenFile', eyeTrackerFileName);    
     data.eyeTracked = 1; % assume eye calibration is skipped
     if expmnt.thisBlock - lastEyeCalBlk >= expmnt.eyeCalInterval

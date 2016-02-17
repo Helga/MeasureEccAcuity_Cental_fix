@@ -38,7 +38,7 @@ if ~exist(dataFileName,'file')
     expmnt.refreshRate =85; %Hz
     
     % The fixation
-    expmnt.nTrial = 10; % trial per block.
+    expmnt.nTrial = 20; % trial per block.
     expmnt.nFixLocations = 8;
     d = 2*pi/expmnt.nFixLocations;
     expmnt.locationToExamin = (0:expmnt.nFixLocations-1) * d;%location of the eccentric fixation each block
@@ -62,6 +62,7 @@ if ~exist(dataFileName,'file')
     % The game
     expmnt.mxTrialDur = 10; %second, maximum trial duration
     expmnt.blockFixation_duration = 5; %second, trial duration for fixation at the beginning of each block
+     expmnt.fix_timeOut = 3;
     expmnt.stable_gaze_std = norm(15, 15); %when std of gaze location is below this value, we consider it as a stable gaze
     expmnt.stable_gaze_thresh = expmnt.ppd; %is the gaze location close enough to the fixation point?
     expmnt.iti = .5; %second, inter-trial interval
@@ -78,7 +79,7 @@ if ~exist(dataFileName,'file')
     
     % Eye tracking
     expmnt.useEyeTracker = 1; % real eyetracker (set to 0 for mouse)
-    expmnt.eyeCalInterval = 4; % in number of blocks
+    expmnt.eyeCalInterval = 8; % in number of blocks
     expmnt.eyeCal = []; % blocks that started with eye tracker calibration
     
     % Misc

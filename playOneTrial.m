@@ -37,7 +37,7 @@ Screen('fillrect', win, backgroundEntry);
 trial_start_time = Screen('Flip',win);%mark trial start time
 
 state = 'fixation';
-
+fix_timedOut = 0;
 % trial loop: records gaze location constantly and walks through different
 % states of a trial. Loop aborts when we reach the last state: "finish"
 while strcmp(state, 'finish') == 0
@@ -50,7 +50,7 @@ while strcmp(state, 'finish') == 0
         end
         if Eyelink('NewFloatSampleAvailable') > 0
             % get the sample in the form of an event structure
-             eyeSampleTime = GetSecs;
+            eyeSampleTime = GetSecs;
             elEvent = Eyelink('NewestFloatSample');
             if eye_used ~= -1 % do we know which eye to use yet?
                 % if we do, get current gaze position from sample
@@ -86,7 +86,7 @@ while strcmp(state, 'finish') == 0
             eyeSampleTime = GetSecs;
         end
     end
-  
+    
     gaze_changed = ~isequal(eyePos, oldEyePos);
     
     if eyeavail
@@ -95,7 +95,7 @@ while strcmp(state, 'finish') == 0
         gazeTime(thisGaze,:) = [nan eyeSampleTime];
         gazePupil(thisGaze,:) = pupilSize;
         gazeStimIdx(thisGaze,1) = ii;
-        thisGaze = thisGaze+1;        
+        thisGaze = thisGaze+1;
         
         % Keep track of last gaze position:
         oldEyePos=eyePos;
@@ -103,25 +103,39 @@ while strcmp(state, 'finish') == 0
             case 'fixation' % Local drift correction
                 if gaze_changed %% draw the fixation cross and wait until fixated
                     
-                   % drawCross(win, eyePos, 10,[ 1 0 0]);%TODO: for debugging purpose, need to remove it when subject performs the experiment
-                    drawCross(win,[round(fixXY(1)) ,round(fixXY(2))], fixationCross_length, fixationCross_color); %draw the fixation cross                                      
+                    % drawCross(win, eyePos, 10,[ 1 0 0]);%TODO: for debugging purpose, need to remove it when subject performs the experiment
+                    drawCross(win,[round(fixXY(1)) ,round(fixXY(2))], fixationCross_length, fixationCross_color); %draw the fixation cross
                     Screen('filloval', win, expmnt.cue.color, cueRec, expmnt.cue.width);%draw the cue
                     fixationCross_on_time = Screen('Flip',win);
                     
                     gazeWin = slidingGazeWin(gazeTime(trailStartGazeInd:thisGaze-1, :) , ...
                         gazeSeq(trailStartGazeInd:thisGaze-1,:), expmnt.slidingWinWid);%sliding gaze window
-                    medianGaze = median(gazeWin);% 
+                    medianGaze = median(gazeWin);%
                     gazeWin_std = std(gazeWin);
                     %             msg{15} = ['median gaze = ', num2str(medianGaze)];
                     %             giveInstruction(win,msg,textEntry,backgroundEntry);
                     %             normD(thisGaze) =  norm(medianGaze - winCenter)
                     %             GW(thisGaze, :, :) = gazeWin;
+                    %                     if  sum(isnan(medianGaze)) ==0  && norm(gazeWin_std) < expmnt.stable_gaze_std ...%is the gaze stable?
+                    %                             && norm(medianGaze - fixXY) < expmnt.stable_gaze_thresh %is the subject actually looking at the fixation?
+                    %                         state = 'blank';
+                    %                         est_drift = double(medianGaze- fixXY);
+                    %                     end
+                    
+                    
+                    
                     if  sum(isnan(medianGaze)) ==0  && norm(gazeWin_std) < expmnt.stable_gaze_std ...%is the gaze stable?
-                            && norm(medianGaze - fixXY) < expmnt.stable_gaze_thresh %is the subject actually looking at the fixation?                        
+                            && norm(medianGaze - fixXY) < expmnt.stable_gaze_thresh %is the subject actually looking at the fixation?
                         state = 'blank';
-                        est_drift = double(medianGaze- fixXY);                        
-                        
+                        est_drift = double(medianGaze- fixXY);
+                        fix_timedOut = 0;
+                    elseif (GetSecs - trial_start_time) > expmnt.fix_timeOut
+                        state = 'blank';
+                        est_drift =[ 0 0];
+                        fix_timedOut = 1;%mark the trial
                     end
+                    
+                    
                 end
             case 'blank'
                 if black_page_on_time == 0 %show the blank page if this is the first time we hit here
@@ -130,7 +144,7 @@ while strcmp(state, 'finish') == 0
                 elseif (GetSecs - black_page_on_time > expmnt.blank_page_display_time) && (warningBeep_time == 0)
                     Snd('Play', expmnt.targetDisplayBeep);% warning beep goes off after a delay
                     warningBeep_time = GetSecs;
-                    state ='show_target';                    
+                    state ='show_target';
                 end
             case 'show_target'
                 if target_on_time == 0 || (GetSecs - target_on_time <expmnt.target_display_time) %if this is the first time we are in state or we still need to show the target
@@ -157,7 +171,7 @@ while strcmp(state, 'finish') == 0
                     Snd('Play',expmnt.missedBeep);
                 end
                 trial_end_time = GetSecs;%mark the subject reponse time
-                state = 'finish';                
+                state = 'finish';
                 
             otherwise
                 error('Unknown state!');
@@ -167,6 +181,8 @@ while strcmp(state, 'finish') == 0
 end
 
 data.est_drift(ii,:) = est_drift;
+data.fix_timedOut(ii,:) = fix_timedOut;
+
 data.std(ii,:) = gazeWin_std;
 if isempty(key_pressed)
     key_pressed = ' ';

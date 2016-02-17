@@ -115,7 +115,6 @@ end
 
 
 % store the timing data for this trial
-data.stim.fixXY(1,:) = [refPt_x, refPt_y];
 data.timing.trial_start_time(1) = trial_start_time;
 data.timing.trial_end_time(1) = trial_end_time;
 data.timing.fixationCross_on_time(1) = fixationCross_on_time;

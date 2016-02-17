@@ -24,9 +24,8 @@ for i = 1:length(PMs)
     text(1.5, .9, 'correct');
     plot(1, 1, 'ko', 'markerfacecolor','w')
     text( 1.5, 1, 'incorrect');
-%     title(['Fixation at ', num2str(round(180*loc/3.14))]);
-        title(['Fixation at ', num2str(loc)]);
-
+    title(['Fixation at ', num2str(360-round(180*loc/3.14))]);
+    
    
     alphaPM(i)=PM.threshold(end);
     logBetaPM(i)=PM.slope(end);

@@ -1,5 +1,5 @@
 function [targSize, succ] = readdata(sid)
-load([sid, '.mat']);
+load(['data/' sid, '.mat']);
 nBlocks = length(expmnt.data);
 targSize = [];
 succ = [];
